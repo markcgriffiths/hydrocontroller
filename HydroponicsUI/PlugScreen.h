@@ -23,6 +23,16 @@
 
 #include "UI_Shared.h"
 #include "Screen.h"
+#include <SimpleTimer.h>
+
+class HydroponicsEngine;
+
+struct whatDevice
+{
+	boolean lights;
+	boolean heater;
+	boolean pump;
+};
 
 class PlugScreen : public Screen
 {
@@ -32,7 +42,13 @@ public:
 	void begin();
 	void drawScreen();
 	void refreshScreen();
+	static void waitForReceiver(NewRemoteCode receivedCode);
 	int handleScreen();
+	void dataReceived();
+	static void setAddresstoEEPROM(unsigned long ctr);
+	void drawPrepareScreen();
+	static void EEPROM_writeint(int address, int value);
+
 
 
 private:
@@ -41,8 +57,7 @@ private:
 	private:
     bool drawUnits;
     boolean codeLearned;
-    unsigned long learnedAddress;
-    unsigned short learnedUnit;
+    int lightID, address, iTimerNumber, settingsButton;
     
 };
 

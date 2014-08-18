@@ -30,12 +30,16 @@ class AirScreen : public MinMaxScreen
 public:
 	//Functions
 	AirScreen();
-	void drawScreen();
+	void drawScreen( int aPreviousScreen );
 	int handleScreen();
 	void refreshScreen();
 	void handleExitScreen();
 	int getMax();
 	int getMin();
+	int getUnits();
+
+private:
+	int iPreviousScreen;
 
 };
 

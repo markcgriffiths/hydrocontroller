@@ -24,18 +24,23 @@
 #include "MinMaxScreen.h"
 #include <string.h>
 
+class HydroponicsEngine;
 
 class WaterScreen : public MinMaxScreen
 {
 public:
 	//Functions
 	WaterScreen();
-	void drawScreen();
+	void drawScreen( int aWhichScreen );
 	int handleScreen();
 	void refreshScreen();
 	void handleExitScreen();
 	int getMax( );
 	int getMin( );
+
+private:
+	 HydroponicsEngine* iEngine;
+	 int iPreviousScreen;
 };
 
 #endif

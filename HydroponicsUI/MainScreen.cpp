@@ -46,6 +46,8 @@ void MainScreen::begin() {
 	myUTFT.setBackColor(0, 0, 255);
 	myButtons.setTextFont(BigFont);
 
+	iEngine->begin();
+
 	resetButtons();
 }
 
@@ -53,20 +55,20 @@ void MainScreen::drawScreen()
 {
 	Serial.println("MainScreen::drawScreen start  \n");
 
+	//Needed if the user updates the time manually.  It can be out of sync
+	iEngine->GetTime(sensorUIInfo.hour, sensorUIInfo.minute);
+
 	 myUTFT.clrScr();
 	 myButtons.setButtonColors(VGA_WHITE, VGA_GRAY, VGA_BLACK, VGA_RED, VGA_BLACK);
 	 resetButtons();
-
-	 //Indicate that we have changed screens.
-	 //whichScreen = MAIN_SCREEN;
 
 	 //Draw a black background
 	 myUTFT.setBackColor (VGA_BLACK);
 	 myUTFT.setColor(VGA_WHITE);
 	  //Draw  Ph button
 
-	 if( ( limitsInfo.maxPHLevel > sensorUIInfo.phLevel ) &&
-	 	  	      ( limitsInfo.minPHLevel < sensorUIInfo.phLevel ) )
+	 if( ( limitsInfo.maxPHLevel >= sensorUIInfo.phLevel ) &&
+	 	  	      ( limitsInfo.minPHLevel <= sensorUIInfo.phLevel ) )
 	 {
 		 pHButton = myButtons.addButton( 10, 5, 64, 64, green_light);
 	 }
@@ -84,8 +86,8 @@ void MainScreen::drawScreen()
 
 	  //Draw  EC button
 
-	  if( ( limitsInfo.maxECLevel > sensorUIInfo.eCLevel ) &&
-	  	      ( limitsInfo.minECLevel < sensorUIInfo.eCLevel ) )
+	  if( ( limitsInfo.maxECLevel >= sensorUIInfo.eCLevel ) &&
+	  	      ( limitsInfo.minECLevel <= sensorUIInfo.eCLevel ) )
 	  {
 		  ECButton = myButtons.addButton( 80, 5, 64, 64, green_light);
 	  }
@@ -101,8 +103,8 @@ void MainScreen::drawScreen()
 	  myUTFT.printNumI(sensorUIInfo.eCLevel, 90, 120,2);
 
 	  //Draw  Air Temp button
-	  if( ( limitsInfo.maxAirTemp > sensorUIInfo.airTemp ) &&
-	      ( limitsInfo.minAirTemp < sensorUIInfo.airTemp ) )
+	  if( ( limitsInfo.maxAirTemp >= sensorUIInfo.airTemp ) &&
+	      ( limitsInfo.minAirTemp <= sensorUIInfo.airTemp ) )
 	  {
 	  	  airButton = myButtons.addButton( 155, 5, 64, 64, green_light);
 	  }
@@ -116,9 +118,10 @@ void MainScreen::drawScreen()
 	  //Draw Air value
 	  myUTFT.printNumI(sensorUIInfo.airTemp, 170, 120, 2);
 
-	  //Draw  Water Temp button
-	  if( ( limitsInfo.maxWaterTemp > sensorUIInfo.waterTemp ) &&
-	  	      ( limitsInfo.minWaterTemp < sensorUIInfo.waterTemp ) )
+
+
+	  if( ( limitsInfo.maxWaterTemp >= sensorUIInfo.waterTemp ) &&
+	  	      ( limitsInfo.minWaterTemp <= sensorUIInfo.waterTemp ) )
 	    {
 	    	  waterButton = myButtons.addButton( 230, 5, 64, 64, green_light);
 	    }
@@ -166,6 +169,63 @@ void MainScreen::refreshScreen()
 	//Draw Clock
 	myUTFT.printNumI(sensorUIInfo.hour, 190, 187,2,'0');
 	myUTFT.printNumI(sensorUIInfo.minute, 235, 187,2,'0');
+
+
+	if ( iEngine->getUpdateAir())
+	{
+	//Air Temp image
+		  if( ( limitsInfo.maxAirTemp >= sensorUIInfo.airTemp ) &&
+		      ( limitsInfo.minAirTemp <= sensorUIInfo.airTemp ) )
+		  {
+			  myUTFT.drawBitmap(155, 5, 64, 64, green_light);
+		  }
+		  else
+		  {
+			  myUTFT.drawBitmap(155, 5, 64, 64, red_light);
+		  }
+	}
+
+	if ( iEngine->getUpdateWater())
+		{
+		  //WATER image
+		  if( ( limitsInfo.maxWaterTemp >= sensorUIInfo.waterTemp ) &&
+		  	  	      ( limitsInfo.minWaterTemp <= sensorUIInfo.waterTemp ) )
+		  	    {
+		  	    	myUTFT.drawBitmap(230, 5, 64, 64, green_light);
+		  	    }
+		  	    else
+		  	    {
+		  	    	myUTFT.drawBitmap(230, 5, 64, 64, red_light);
+		  	    }
+		}
+	if ( iEngine->getUpdatepH())
+		{
+			if( ( limitsInfo.maxPHLevel >= sensorUIInfo.phLevel ) &&
+		 	  	      ( limitsInfo.minPHLevel <= sensorUIInfo.phLevel ) )
+			{
+			 myUTFT.drawBitmap(10, 5, 64, 64, green_light);
+			}
+			else
+			{
+		 	myUTFT.drawBitmap(10, 5, 64, 64, red_light);
+			}
+
+		}
+
+	if ( iEngine->getUpdateEC())
+		{
+			if( ( limitsInfo.maxECLevel >= sensorUIInfo.eCLevel ) &&
+		 	  	      ( limitsInfo.minECLevel <= sensorUIInfo.eCLevel ) )
+			{
+			 myUTFT.drawBitmap(80, 5, 64, 64, green_light);
+			}
+			else
+			{
+		 	myUTFT.drawBitmap(80, 5, 64, 64, red_light);
+			}
+
+		}
+
 }
 
 void MainScreen::handleExitScreen()

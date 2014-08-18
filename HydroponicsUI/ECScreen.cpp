@@ -33,8 +33,9 @@ ECScreen::ECScreen( )
 {
 }
 
-void ECScreen::drawScreen()
+void ECScreen::drawScreen(int aWhichScreen )
 {
+	iPreviousScreen = aWhichScreen;
 	drawMinMaxScreen( max, min, units );
 	//Setup header last as drawMinMaxScreen will clear screen.
 	drawHeader( "EC Control",  "Max and min EC"  );
@@ -75,6 +76,10 @@ int ECScreen::handleScreen()
 	if (pressed_button==back2MainButton)
 			{
 			handleExitScreen();
+
+			if (iPreviousScreen == 3/*SETUP_SCREEN*/ || iPreviousScreen == /*CALLIBRATE_EC_SCREEN */11 )
+					return BACK2SETUP_BUTTON;
+
 			return BACK2MAIN_BUTTON;
 			}
 		if (pressed_button==plusMaxButton)

@@ -90,6 +90,10 @@ int Screen::handleScreenButtons(int pressed_button){
 
 			 	return LIGHTSWITCH_BUTTON;
 			 	 }
+			 if (pressed_button==pumpTimerButton)
+			 	{
+			 	return PUMP_TIMER_BUTTON ;
+			 	}
 
 
 

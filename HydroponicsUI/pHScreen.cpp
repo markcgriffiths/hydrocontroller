@@ -31,8 +31,9 @@ extern UTFT_Buttons myButtons;
 PhScreen::PhScreen(){
 }
 
-void PhScreen::drawScreen()
+void PhScreen::drawScreen( int aWhichScreen )
 {
+	iPreviousScreen = aWhichScreen;
 	Serial.println("PhScreen::drawScreen start  \n");
 	drawMinMaxScreen( floatMax, floatMin, units );
 	//Setup header last as drawMinMaxScreen will clear screen.
@@ -75,6 +76,10 @@ int PhScreen::handleScreen()
 		if (pressed_button==back2MainButton)
 				{
 				handleExitScreen();
+
+				if (iPreviousScreen == 3/*SETUP_SCREEN*/ || iPreviousScreen == /*CALLIBRATE_PH_SCREEN */10 )
+						return BACK2SETUP_BUTTON;
+
 				return BACK2MAIN_BUTTON;
 				}
 			if (pressed_button==plusMaxButton)

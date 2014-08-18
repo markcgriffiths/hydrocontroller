@@ -25,8 +25,9 @@
 WaterScreen::WaterScreen(){
 }
 
-void WaterScreen::drawScreen()
+void WaterScreen::drawScreen( int aWhichScreen )
 {
+	iPreviousScreen = aWhichScreen;
 	Serial.println("WaterScreen::drawScreen start  \n");
 	drawMinMaxScreen( max, min, units );
 	//Setup header last as drawMinMaxScreen will clear screen.
@@ -45,6 +46,7 @@ void WaterScreen::handleExitScreen()
 	EEPROM.write(EEPROM_WATERMAXTEMP_ADDRESS, max);
 	EEPROM.write(EEPROM_WATERMINTEMP_ADDRESS, min);
 	EEPROM.write(EEPROM_WATERTEMPUNITS_ADDRESS, units);
+	iEngine->SetWaterThresholds( max, min );
 
 }
 
@@ -61,7 +63,12 @@ int WaterScreen::getMin( )
 int WaterScreen::handleScreen()
 {
 	Serial.println("WaterScreen::handleScreen start  \n");
-	return handleMinMaxScreen( max, min, units );
+	int ret = handleMinMaxScreen( max, min, units );
+
+	if ( (ret == BACK2MAIN_BUTTON  ) && (iPreviousScreen == 3/*SETUP_SCREEN*/) )
+		ret = BACK2SETUP_BUTTON;
+
+	return ret;
 }
 
 

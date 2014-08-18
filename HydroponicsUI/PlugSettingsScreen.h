@@ -18,24 +18,34 @@
 // HISTORY:
 // Mark Griffiths- Original version (15/02/2014)
 
-#ifndef SCREEN_H
-#define SCREEN_H
+#ifndef PLUGSETTINGSSCREEN_H
+#define PLUGSETTINGSSCREEN_H
 
 #include "UI_Shared.h"
+#include "Screen.h"
+#include <SimpleTimer.h>
 
+class HydroponicsEngine;
 
-class Screen
+class PlugSettingsScreen : public Screen
 {
 public:
 	//Functions
-	Screen();
+	PlugSettingsScreen();
 	void begin();
-	int handleScreenButtons(int pressed_button);
-	void resetButtonIDs();
+	void drawScreen();
+	void refreshScreen();
+	int handleScreen();
 
-protected:
-	int airButton, pHButton, ECButton, waterButton,plugsButton,aboutButton,back2SetupButton,clockButton, back2MainButton, pumpTimerButton;
-	int plusMaxButton, minusMaxButton, plusMinButton, minusMinButton, unitsButton, heaterButton, lightsButton, pumpButton, lightSwitchButton;
+private:
+	void resetButtons();
+
+	private:
+    bool drawUnits;
+    boolean codeLearned;
+    int lightsChange, pumpChange, heaterChange;
+    HydroponicsEngine* iEngine;
+    
 };
 
 #endif

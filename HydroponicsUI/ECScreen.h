@@ -33,7 +33,7 @@ class ECScreen : public MinMaxScreen
 public:
 	//Functions
 	ECScreen();
-	void drawScreen();
+	void drawScreen( int aWhichScreen );
 	int handleScreen();
 	void refreshScreen();
 	void handleExitScreen();
@@ -43,6 +43,7 @@ public:
 
 private:
 	int settingsButton;
+	int iPreviousScreen;
 
 };
 

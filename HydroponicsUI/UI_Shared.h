@@ -69,6 +69,9 @@ const int PLUGS_BUTTON 				= 11;
 const int LIGHTSWITCH_BUTTON 		= 12;
 const int EC_CALIBRATION_BUTTON 	= 13;
 const int PH_CALIBRATION_BUTTON 	= 14;
+const int PLUGS_SETTINGS_BUTTON 	= 15;
+const int PUMP_TIMER_BUTTON 		= 16;
+const int PUMP_DURATION_BUTTON 		= 17;
 
 //EEPROM address, 4kb so 4*1024 spaces to save data.
 const int EEPROM_EMPTY_ADDRESS = 0;
@@ -86,11 +89,33 @@ const int EEPROM_PHMINTEMP_ADDRESS = 8;
 const int EEPROM_ECMAXTEMP_ADDRESS = 9;
 const int EEPROM_ECMINTEMP_ADDRESS = 10;
 
+const unsigned int EEPROM_LEARNED_PLUGS_ADDRESS_A = 11;  //LSB
+const unsigned int EEPROM_LEARNED_PLUGS_ADDRESS_B = 12;
+const unsigned int EEPROM_LEARNED_PLUGS_ADDRESS_C = 13;
+const unsigned int EEPROM_LEARNED_PLUGS_ADDRESS_D = 14; //MSB
+const unsigned int EEPROM_LEARNED_PLUGS_ADDRESS_E = 15; //Counter
+
+const unsigned short EEPROM_LEARNED_LIGHTS_UNIT = 16;
+const unsigned short EEPROM_LEARNED_PUMP_UNIT = 17;
+const unsigned short EEPROM_LEARNED_HEATER_UNIT = 18;
+
+const unsigned short EEPROM_LIGHTS_UNIT_STATE = 19;
+const unsigned short EEPROM_PUMP_UNIT_STATE = 20;
+const unsigned short EEPROM_HEATER_UNIT_STATE = 21;
+
+const unsigned short EEPROM_PUMP_TIMER_HOUR = 22;
+const unsigned short EEPROM_PUMP_TIMER_MIN = 23;
+
+const unsigned short EEPROM_PUMP_DURATION_TIMER_HOUR = 24;
+const unsigned short EEPROM_PUMP_DURATION_TIMER_MIN = 25;
+
 struct LIMITS{
 	int maxAirTemp;
 	int minAirTemp;
+	int airUnits;
 	int maxWaterTemp;
 	int minWaterTemp;
+	int waterUnits;
 	int maxECLevel;
 	int minECLevel;
 	float maxPHLevel;

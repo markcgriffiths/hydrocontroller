@@ -66,6 +66,17 @@ void HydroponicsUI::begin(HydroponicsEngine* aHydroEng) {
  	iPlugScreen = new PlugScreen;
  	iPlugScreen->begin();
 
+ 	iPumpScreen = new PumpScreen;
+ 	iPumpScreen->begin();
+ 	iPumpScreen->SetValueText( "Hour", "Min" );
+
+ 	iPumpDurationScreen = new PumpDurationScreen;
+ 	iPumpDurationScreen->begin();
+ 	iPumpDurationScreen->SetValueText( "Hour", "Min" );
+
+ 	iPlugSettingsScreen = new PlugSettingsScreen;
+ 	iPlugSettingsScreen->begin();
+
  	iSetupScreen = new SetupScreen;
  	iSetupScreen->begin();
 
@@ -77,9 +88,21 @@ void HydroponicsUI::begin(HydroponicsEngine* aHydroEng) {
  	iMainScreen = new MainScreen;
  	iMainScreen->begin();
  	whichScreen = MAIN_SCREEN;
- 	iMainScreen->drawScreen();
+ 	//Update Limit Values
+ 	limitInfo.maxPHLevel = ipHScreen->getMax();
+ 	limitInfo.minPHLevel = ipHScreen->getMin();
+ 	limitInfo.maxECLevel = iECScreen->getMax();
+ 	limitInfo.minECLevel = iECScreen->getMin();
+ 	limitInfo.maxAirTemp = iAirScreen->getMax();
+ 	limitInfo.minAirTemp = iAirScreen->getMin();
+ 	limitInfo.maxWaterTemp = iWaterScreen->getMax();
+ 	limitInfo.minWaterTemp = iWaterScreen->getMin();
+ 	iMainScreen->setLimitValues( limitInfo );
+}
 
-
+void HydroponicsUI::drawMainScreen()
+{
+	iMainScreen->drawScreen();
 }
 
 void HydroponicsUI::CheckForScreenTouch()
@@ -107,14 +130,16 @@ void HydroponicsUI::CheckForScreenTouch()
         {
 
           handleButtons( ipHScreen->handleScreen() );
+          limitInfo.maxPHLevel = ipHScreen->getMax();
+          limitInfo.minPHLevel = ipHScreen->getMin();
           break;
         }
           case EC_SCREEN:
         {
 
           handleButtons( iECScreen->handleScreen() );
-          limitInfo.maxECLevel = iWaterScreen->getMax();
-          limitInfo.minECLevel = iWaterScreen->getMin();
+          limitInfo.maxECLevel = iECScreen->getMax();
+          limitInfo.minECLevel = iECScreen->getMin();
           break;
         }
           case AIR_SCREEN:
@@ -122,6 +147,7 @@ void HydroponicsUI::CheckForScreenTouch()
         	handleButtons( iAirScreen->handleScreen() );
         	limitInfo.maxAirTemp = iAirScreen->getMax();
         	limitInfo.minAirTemp = iAirScreen->getMin();
+        	limitInfo.airUnits = iAirScreen->getUnits();
           break;
         }
           case WATER_SCREEN:
@@ -153,6 +179,22 @@ void HydroponicsUI::CheckForScreenTouch()
            handleButtons( iPhCalibrateScreen->handleScreen() );
            break;
         }
+         case PLUGS_SETTINGS_SCREEN:
+        {
+           Serial.println("handle Plug Settings Screen();  \n");
+           handleButtons( iPlugSettingsScreen->handleScreen() );
+           break;
+        }
+         case PUMP_SCREEN:
+          {
+          handleButtons( iPumpScreen->handleScreen() );
+          break;
+          }
+         case PUMP_DURATION_SCREEN:
+          {
+          handleButtons( iPumpDurationScreen->handleScreen() );
+          break;
+          }
         default: //If Error, Just go back to main.
         {
         	Serial.println("ERROR :::: handleMainScreen();  \n");
@@ -165,27 +207,20 @@ void HydroponicsUI::CheckForScreenTouch()
 }
 
 //Updates the screen, if needed, with data from HW.
-void HydroponicsUI::refreshScreen(){
-  
-  //See which screen we are on.
+void HydroponicsUI::refreshScreen()
+{
       switch(whichScreen)
       {
-        case MAIN_SCREEN: //Main Screen
+        case MAIN_SCREEN:
         {
-          //refreshMainScreen();
           iMainScreen->refreshScreen();
           break;
         }
-
-        
       }
-  
 }
 
-void HydroponicsUI::handleButtons( int aHandleWhichButton ){
-
-	Serial.println("HydroponicsUI::handleButtons \n");
-	Serial.println(aHandleWhichButton);
+void HydroponicsUI::handleButtons( int aHandleWhichButton )
+{
 	switch(aHandleWhichButton)
 	{
 	case NONE:
@@ -194,26 +229,26 @@ void HydroponicsUI::handleButtons( int aHandleWhichButton ){
 		}
 	case AIR_BUTTON:
 		{
+		iAirScreen->drawScreen(whichScreen);
 		whichScreen = AIR_SCREEN;
-		iAirScreen->drawScreen();
 		break;
 		}
 	case PH_BUTTON:
 		{
+		ipHScreen->drawScreen(whichScreen);
 		whichScreen = PH_SCREEN;
-		ipHScreen->drawScreen();
 		break;
 		}
 	case EC_BUTTON:
 		{
+		iECScreen->drawScreen(whichScreen);
 		whichScreen = EC_SCREEN;
-		iECScreen->drawScreen();
 		break;
 		}
 	case WATER_BUTTON:
 		{
+		iWaterScreen->drawScreen(whichScreen);
 		whichScreen = WATER_SCREEN;
-		iWaterScreen->drawScreen();
 		break;
 		}
 	case ABOUT_BUTTON:
@@ -249,7 +284,7 @@ void HydroponicsUI::handleButtons( int aHandleWhichButton ){
 		}
 	case LAMPS_BUTTON:
 		{
-		iHydroEng->setLightsID();
+		//iHydroEng->setLightsID();
 		break;
 		}
 	case PUMP_BUTTON:
@@ -274,6 +309,25 @@ void HydroponicsUI::handleButtons( int aHandleWhichButton ){
 	    iPhCalibrateScreen->drawScreen();
 		break;
 		}
+	case PLUGS_SETTINGS_BUTTON:
+		{
+		whichScreen = PLUGS_SETTINGS_SCREEN;
+		iPlugSettingsScreen->drawScreen();
+		break;
+		}
+	case PUMP_TIMER_BUTTON:
+		{
+		whichScreen = PUMP_SCREEN;
+		iPumpScreen->drawScreen();
+		break;
+		}
+	case PUMP_DURATION_BUTTON:
+		{
+		whichScreen = PUMP_DURATION_SCREEN;
+		iPumpDurationScreen->drawScreen();
+		break;
+		}
+
 	}
 
 

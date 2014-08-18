@@ -104,9 +104,6 @@ void PhCalibrateScreen::updateWaitScreen()
 	   //Move to next stage.
 	   pHFourCalibration();
    }
-
-
-
 }
 
 void PhCalibrateScreen::updatePH7WaitScreen()
@@ -211,9 +208,9 @@ void PhCalibrateScreen::begin()
 	Serial.begin(115200);
 
 	//Start Read straight away.
-	//inputstring = ( waterTempString + ",C\r");  //Start based on temp.
-	//Serial4.print(inputstring); //send command to sensor.
-
+	PHinputstring = ( waterTempString + ",C\r");  //Start based on temp.
+	Serial2.print(PHinputstring); //send command to sensor.
+	PHinputstring = "";
 }
 
 void PhCalibrateScreen::drawScreen()
@@ -374,16 +371,15 @@ void PhCalibrateScreen::pHSevenCalibration()
 
 	PHinputstring = "C\r";  //set in continious mode
 	delay(2000);  //Wait 2 seconds 
-	//Serial2.print(PHinputstring); //send command to sensor.
+	Serial2.print(PHinputstring); //send command to sensor.
 	PHinputstring = "S\r";  //set the sensor to calibrate for pH7.
-	//Serial2.print(PHinputstring); 
+	Serial2.print(PHinputstring);
 
 	myUTFT.clrScr();
 	String thisSt = String(iSeconds);
 	myUTFT.print("Calibration in Progress", CENTER, 30);
 	myUTFT.print("Seconds left until ready " + thisSt, CENTER, 42);
 	simpleTimer.setTimer(3000, updateWaitScreen, /*100*/ 4); //Update screen every 3 seconds for 2 minues.
-
 }
 
 void PhCalibrateScreen::pHFourCalibration()
@@ -412,14 +408,13 @@ void PhCalibrateScreen::pHFourCalibration()
 	myUTFT.clrScr();
 
 	PHinputstring = "F\r";  //set the sensor to calibrate for pH4.
-	//Serial2.print(PHinputstring); 
+	Serial2.print(PHinputstring);
 
 	myUTFT.clrScr();
 	String thisSt = String(iSeconds);
 	myUTFT.print("Calibration in Progress", CENTER, 30);
 	myUTFT.print("Seconds left until ready " + thisSt, CENTER, 42);
 	simpleTimer.setTimer(3000, updatePH7WaitScreen, /*100*/ 4); //Update screen every 3 seconds for 2 minues.
-
 }
 
 void PhCalibrateScreen::pHTenCalibration()
@@ -448,14 +443,13 @@ void PhCalibrateScreen::pHTenCalibration()
 	myUTFT.clrScr();
 
 	PHinputstring = "T\r";  //set the sensor to calibrate for pH10.
-	//Serial2.print(PHinputstring); 
+	Serial2.print(PHinputstring);
 
 	myUTFT.clrScr();
 	String thisSt = String(iSeconds);
 	myUTFT.print("Calibration in Progress", CENTER, 30);
 	myUTFT.print("Seconds left until ready " + thisSt, CENTER, 42);
 	simpleTimer.setTimer(3000, updatePH10WaitScreen, /*100*/ 4); //Update screen every 3 seconds for 2 minues.
-
 }
 
 void PhCalibrateScreen::endCalibration()
@@ -487,7 +481,6 @@ void PhCalibrateScreen::endCalibration()
 	myButtons.enableButton( /*calibrateButton*/7);
 
 	SdrawScreen();
-
 }
 
 
@@ -506,8 +499,6 @@ void PhCalibrateScreen::resetButtons()
 	backButton = -10;
 	calibrateButton = -10;
 	subBackButton = -10;
-
-
 }
 
 /*
@@ -518,17 +509,15 @@ void PhCalibrateScreen::resetButtons()
 Full proper syntax: i<cr> or I<CR>
 The pH Circuit will respond: P,V5.0,5/13<CR>
 
-“P” (for pH)
-“V5.0”
-“5/13” (May / 2013)
+P (for pH)
+V5.0
+5/13 (May / 2013)
 
  */
 void PhCalibrateScreen::getInfo()
 {
 	String inputstring = "I\r";  //Command to get info
 	Serial2.print(inputstring); //send command to sensor.
-	//Serial2.print(inputstring); //need to send twice??
-
 
 	//Draw part of the screen here and the info when we have it.
 	//info comes after the loop has iterated.
@@ -541,8 +530,6 @@ void PhCalibrateScreen::getInfo()
 	myUTFT.print("Back", 45, 185);
 
 	waiting_for_PH_info = true;
-
-
 }
 
 //Static so can be used with the callback.
@@ -564,7 +551,6 @@ void drawPHInfoScreen()
 	myUTFT.print(version, CENTER, 54);
 	myUTFT.print("Firmware Date", CENTER, 78);
 	myUTFT.print(date, CENTER, 102);
-
 }
 
 //Static so can be used with the callback.
@@ -629,6 +615,7 @@ if(waiting_for_PH_info && PHsensor_stringcomplete)
 	}
 if(waiting_for_PH_single_reading && PHsensor_stringcomplete)
 	{
+	Serial.print("\n Drawing Screen \n");
 	drawPHReadingScreen();
 	waiting_for_PH_single_reading = false;
 	PHsensor_stringcomplete = false;
@@ -641,9 +628,7 @@ void PhCalibrateScreen::getSingleReading()
 	waiting_for_PH_single_reading = true;
 	PHinputstring = "R\r";  //Command to get reading.
 	Serial2.print(PHinputstring); //send command to sensor.
-	//delay(1000); //This takes 1000ms to complete.
-
-
+	delay(378); //This takes 378ms to complete.
 	//Draw part of the screen here and the info when we have it.
 	//info comes after the loop has iterated.
 	myUTFT.clrScr();
@@ -653,19 +638,16 @@ void PhCalibrateScreen::getSingleReading()
 	myButtons.drawButton(subBackButton);
 	myUTFT.setBackColor (161,190,237);
 	myUTFT.print("Back", 45, 185);
-
-	
-
 }
 
 void PhCalibrateScreen::getTempSingleReading()
 {
 	waiting_for_PH_single_reading = true;
 	PHinputstring = ( waterTempString + "\r");  //"17.8\r"Command to get reading.
-	Serial2.print(PHinputstring); //send command to sensor.
-	//delay(1000); //This takes 1000ms to complete.
-
-
+	Serial2.print(PHinputstring); //send temp to sensor
+	PHinputstring = "R\r";  //Command to get reading.
+	Serial2.print(PHinputstring); //send command to sensor
+	delay(378); //This takes 378ms to complete.
 	//Draw part of the screen here and the info when we have it.
 	//info comes after the loop has iterated.
 	myUTFT.clrScr();
@@ -675,16 +657,13 @@ void PhCalibrateScreen::getTempSingleReading()
 	myButtons.drawButton(subBackButton);
 	myUTFT.setBackColor (161,190,237);
 	myUTFT.print("Back", 45, 185);
-
-	
-
 }
 
 void PhCalibrateScreen::setStopMode()
 {
 	PHinputstring = "E\r";  //Command to get info
 	Serial2.print(PHinputstring); //send command to sensor.
-	//Serial2.print(inputstring); //need to send twice??
+
 	inStopMode = true;
 	drawStoppingScreen();
 
@@ -693,24 +672,21 @@ void PhCalibrateScreen::setStopMode()
 void PhCalibrateScreen::setStartMode()
 {
 	PHinputstring = ( waterTempString + ",C\r");  //Start based on temp.
-	//inputstring = "C\r";  //Command to get info
 	Serial2.print(PHinputstring); //send command to sensor.
 
 	delay(1000);
 	inStopMode = false;
 	drawStartingScreen();
-
 }
 
 void PhCalibrateScreen::factoryReset()
 {
 	PHinputstring = "X\r";  //Command to get info
-	//Serial3.print(inputstring); //send command to sensor.
-	//Serial3.print(inputstring); //need to send twice??
+	Serial2.print(PHinputstring); //send command to sensor.
+
 	factReset = true;  //Hack as they share the same button ID.
 	delay(1000);
 	drawResetScreen();
-
 }
 
 void PhCalibrateScreen::drawResetScreen()
@@ -732,8 +708,6 @@ void PhCalibrateScreen::drawResetScreen()
 	myButtons.drawButton(subBackButton);
 	myUTFT.setBackColor (161,190,237);
 	myUTFT.print("Back", 45, 185);
-
-
 }
 
 void PhCalibrateScreen::drawStartingScreen()
@@ -755,8 +729,6 @@ void PhCalibrateScreen::drawStartingScreen()
 	myButtons.drawButton(subBackButton);
 	myUTFT.setBackColor (161,190,237);
 	myUTFT.print("Back", 45, 185);
-
-
 }
 
 void PhCalibrateScreen::drawStoppingScreen()

@@ -103,8 +103,8 @@ void ECCalibrateScreen::begin()
 	Serial.begin(115200);
 
 	//Start Read straight away.
-	//inputstring = ( waterTempString + ",C\r");  //Start based on temp.
-	//Serial3.print(inputstring); //send command to sensor.
+	inputstring = ( waterTempString + ",C\r");  //Start based on temp.
+	Serial3.print(inputstring); //send command to sensor.
 
 }
 
@@ -190,7 +190,6 @@ void ECCalibrateScreen::startCalibration()
 
 	inputstring = "P,1\r";  //In Hydroponics we use always E.C Sensor 0.1 -- Fresh Water
 	Serial3.print(inputstring); //send command to sensor.
-	//Serial3.print(inputstring); //need to send twice??
 
 	myUTFT.setFont(SmallFont);
 	dryCalibration();
@@ -364,15 +363,17 @@ void ECCalibrateScreen::lowCalibration()
 	SwaitForTouch();
 	myUTFT.clrScr();
 
+	inputstring = "C\r";  //set in continious mode
+
 	String thisSt = String(12);
 	myUTFT.print("Calibration in Progress", CENTER, 30);
 	myUTFT.print("Seconds left until ready " + thisSt, CENTER, 42);
 	simpleTimer.setTimer(3000, updateLowWaitScreen, /*100*/ 4); //Update screen every 3 seconds for 5 minues.
 
-	inputstring = "C\r";  //set in continious mode
-	delay(2000);  //Wait 2 seconds -- make 5mins
+
+	//delay(2000);  //Wait 2 seconds -- make 5mins
 	//Serial3.print(inputstring); //send command to sensor.
-	inputstring = "Z2\r";  //set the sensor at this value.
+	//inputstring = "Z2\r";  //set the sensor at this value.
 	//Serial3.print(inputstring); //need to send twice??
 
 
@@ -405,8 +406,7 @@ void ECCalibrateScreen::dryCalibration()
 	myUTFT.clrScr();
 
 	inputstring = "Z0\r";  //Command to get info
-	//Serial3.print(inputstring); //send command to sensor.
-	//Serial3.print(inputstring); //need to send twice??
+	Serial3.print(inputstring); //send command to sensor.
 
 }
 
@@ -490,8 +490,6 @@ void ECCalibrateScreen::getInfo()
 {
 	inputstring = "I\r";  //Command to get info
 	Serial3.print(inputstring); //send command to sensor.
-	//Serial3.print(inputstring); //need to send twice??
-
 
 	//Draw part of the screen here and the info when we have it.
 	//info comes after the loop has iterated.
@@ -534,7 +532,6 @@ void ECCalibrateScreen::getTempSingleReading()
 	Serial3.print(inputstring); //send command to sensor.
 	delay(1000); //This takes 1000ms to complete.
 
-
 	//Draw part of the screen here and the info when we have it.
 	//info comes after the loop has iterated.
 	myUTFT.clrScr();
@@ -553,7 +550,6 @@ void ECCalibrateScreen::setStopMode()
 {
 	inputstring = "E\r";  //Command to get info
 	Serial3.print(inputstring); //send command to sensor.
-	//Serial3.print(inputstring); //need to send twice??
 
 	inStopMode = true;
 	drawStoppingScreen();
@@ -563,10 +559,9 @@ void ECCalibrateScreen::setStopMode()
 void ECCalibrateScreen::setStartMode()
 {
 	inputstring = ( waterTempString + ",C\r");  //Start based on temp.
-	//inputstring = "C\r";  //Command to get info
 	Serial3.print(inputstring); //send command to sensor.
 
-	delay(1000);
+	//delay(1000);
 	inStopMode = false;
 	drawStartingScreen();
 
@@ -575,8 +570,8 @@ void ECCalibrateScreen::setStartMode()
 void ECCalibrateScreen::factoryReset()
 {
 	inputstring = "X\r";  //Command to get info
-	//Serial3.print(inputstring); //send command to sensor.
-	//Serial3.print(inputstring); //need to send twice??
+	Serial3.print(inputstring); //send command to sensor.
+
 	factReset = true;  //Hack as they share the same button ID.
 	delay(1000);
 	drawResetScreen();

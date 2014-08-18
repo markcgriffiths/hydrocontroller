@@ -19,26 +19,27 @@
 // Mark Griffiths- Original version (15/02/2014)
 
 
-#include "TimeScreen.h"
+#include "PumpDurationScreen.h"
 
 
-
-TimeScreen::TimeScreen(){
+PumpDurationScreen::PumpDurationScreen(){
+	Serial.begin(115200);
 }
 
-void TimeScreen::drawScreen()
+void PumpDurationScreen::drawScreen()
 {
-	Serial.println("TimeScreen::drawScreen start  \n");
-	iEngine->GetTime(max, min);
+	Serial.println("PumpTimerScreen::drawScreen start  \n");
+	max = EEPROM.read(EEPROM_PUMP_DURATION_TIMER_HOUR);
+	min = EEPROM.read(EEPROM_PUMP_DURATION_TIMER_MIN);
 	drawMinMaxScreen( max, min, units );
 	//Setup header last as drawMinMaxScreen will clear screen.
-	drawHeader( "Time Control",  "Set Hours & Mins"  );
-	Serial.println("TimeScreen::drawScreen end  \n");
+	drawHeader( "Pump Duration",  "Set Hours & Mins"  );
+	iEngine->begin();
+	Serial.println("PumpDurationScreen::drawScreen end  \n");
 }
 
-void TimeScreen::refreshScreen()
+void PumpDurationScreen::refreshScreen()
 {
-
 	if( max > 24 )
 		max = 0;
 
@@ -54,22 +55,29 @@ void TimeScreen::refreshScreen()
 	refreshMinMaxScreen( max, min, units );
 }
 
-void TimeScreen::handleExitScreen()
+void PumpDurationScreen::handleExitScreen()
 {
-	iEngine->SetTime(max, min);
+	Serial.println("PumpDurationScreen::Exit start");
+	Serial.println(max);
+	Serial.println(min);
+	EEPROM.write(EEPROM_PUMP_DURATION_TIMER_HOUR, max);
+	EEPROM.write(EEPROM_PUMP_DURATION_TIMER_MIN, min);
+	iEngine->SetPumpDurationTimer(max, min);
+	//iEngine->GetPumpTimer();
+	Serial.println("PumpDurationScreen::Exit end");
 }
 
-int TimeScreen::handleScreen()
+int PumpDurationScreen::handleScreen()
 {
-	Serial.println("TimeScreen::handleScreen start  \n");
-
+	Serial.println("PumpDurationScreen::handleScreen start  \n");
 
 	int ret = handleMinMaxScreen( max, min, units );
 
-	if(ret ==BACK2MAIN_BUTTON)
-		ret = BACK2SETUP_BUTTON;
+	if (ret==BACK2MAIN_BUTTON)
+			ret = PUMP_TIMER_BUTTON;
 
 	return ret;
+
 }
 
 

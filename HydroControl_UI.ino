@@ -1,4 +1,3 @@
-
 /* Hydrocontroller - Used for controlling a hydroponics machine.
     Copyright (C) 2014  Mark Griffiths
 
@@ -21,9 +20,9 @@
 
 /*Digital Pin
 INT5 :        18   FREE
-INT4 :        19   Receiver
+INT4 :        19   FREE
 INT3 :        20   I2C
-INT2 :        21   I2C
+INT2 :        21   I2C --RECEIVER
 INT1 :        3    // UI
 INT0 :        2*/  // UI
 
@@ -33,10 +32,10 @@ INT0 :        2*/  // UI
 //pieces together so providing all the glue logic in the sketch is very appropriate.
 //#include <PCM.h> //To play a tone
 #include <NewRemoteTransmitter.h>  //Plugs
+#include <NewRemoteReceiver.h>
 #include <dht11.h> // Air Temp
 #include <PhidgetsORPpH.h>  //Ph ORP
 #include <Wire.h>  //I2C
-//#include <RTClib.h> //Real time Clock
 #include <EEPROMex.h>
 #include <EEPROM.h>
 #include <OneWire.h>
@@ -44,14 +43,13 @@ INT0 :        2*/  // UI
 #include <DS3234.h> //RTC
 #include "Timer.h"
 #include <SimpleTimer.h>
+//#include <PlugScreen.h>
 
 
 
 #include <UTFT.h> // Graphics Library
 #include <UTouch.h> //Touch Screen Library
 #include <UTFT_Buttons.h>
-
-#include <avr/sleep.h>
 
 
 #include <HydroponicsEngine.h> //The Engine of the system.
@@ -62,7 +60,9 @@ HydroponicsUI Hydro_UI;
 
 SimpleTimer simpleTimer;
 
-int loopCounter = 0;
+//49 so it updates OK on first loop.
+int loopCounter = 49;
+boolean isDataReceived = false;
 
 /*************************
 **  Required functions  **
@@ -74,18 +74,10 @@ void setup()
   Hydro_Eng.begin();
   Hydro_UI.begin(&Hydro_Eng);
   
-  //Get/update the sensors information
-  Hydro_Eng.pHLevel();
-  Hydro_Eng.airTemperatureHumidity();
-  Hydro_Eng.dateAndTime();
-  Hydro_Eng.waterTemp();
-  Hydro_Eng.lightValue();
-  Hydro_Eng.ECLevel();
   //Update the UI of the latest Sensor Info
   Hydro_UI.updateInfoFromSensors( Hydro_Eng.getSensorInformation() );
-  //First time it will think it wants to refresh
-  //So here do a hack and actually draw all the screen.
-  Hydro_Eng.screenUpdated(); 
+
+  Hydro_UI.drawMainScreen();
 }
 
 void loop()

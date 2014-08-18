@@ -34,6 +34,7 @@
 #define LIGHT_PIN 2
 #define RTC_PIN 9
 const byte TRANSMITTER_PIN = 11;
+const byte RECEIVER_PIN = 2; //PIN 21 interrupt 2
 
 
 #if TEST_STUBBS_ON
@@ -97,22 +98,39 @@ public:
 	void waterTemp();
 	void lightValue();
 	SENSOR& getSensorInformation();
-	void setLightsID();
-	static void showLightsCode(NewRemoteCode receivedCode);
 	void setPumpID();
 	void ECLevel();
-	static void showPumpCode(NewRemoteCode receivedCode);
-	static void SwitchLightsValue(bool aValue);
-	static void SwitchPumpValue(bool aValue);
+	void setTransmitterInformation();
+	void SwitchLightsValue(bool aValue);
+	void SwitchPumpValue(bool aValue);
+	void SwitchHeaterValue(bool aValue);
+	void SetTime( int aHour, int aMin);
+	void GetTime(int& aHour, int& aMin);
+	void SetWaterThresholds(int aMax, int aMin );
+	void SetPumpTimer(int aHour, int aMin);
+	long GetPumpTimer();
+	void SetPumpDurationTimer(int aHour, int aMin);
+	long GetPumpDurationTimer();
+	void ResetPumpDurationTimer();
+	void ResetPumpTimer();
+	void setAirTempUnits();
+	void setWaterTempUnits();
+	boolean getUpdateWater();
+	boolean getUpdateAir();
+	boolean getUpdatepH();
+	boolean getUpdateEC();
     
 	
 	private:
 	//Member Variables
-    boolean updateScreen;
+    boolean updateScreen, updatepH, updateEC, updateAir, updateWater;
     int minuteKeep;
     struct SENSOR sensorInfo;
     bool lightPlugOn; //Keeps track if the light is on.
     NewRemoteReceiver* iReciever;
+    int waterMaxTemp, waterMinTemp;
+    long pumpTimerInSeconds, pumpDurationTimerInSeconds;
+    long pumpTimerInSecondsSaved, pumpDurationTimerInSecondsSaved;
     
   
 };

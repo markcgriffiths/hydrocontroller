@@ -25,6 +25,7 @@
 #include <UI_Shared.h>
 #include "Screen.h"
 
+class HydroponicsEngine;
 
 class MainScreen : public Screen
 {
@@ -43,6 +44,7 @@ public:
 private:
 	struct SENSOR sensorUIInfo;
 	struct LIMITS limitsInfo;
+	HydroponicsEngine* iEngine;
 };
 
 #endif

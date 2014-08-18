@@ -24,6 +24,7 @@
 #include "MinMaxScreen.h"
 #include <string.h>
 
+class HydroponicsEngine;
 
 class TimeScreen : public MinMaxScreen
 {
@@ -34,6 +35,8 @@ public:
 	int handleScreen();
 	void refreshScreen();
 	void handleExitScreen();
+private:
+	HydroponicsEngine* iEngine;
 };
 
 #endif

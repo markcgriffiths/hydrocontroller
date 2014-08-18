@@ -31,7 +31,7 @@ class PhScreen : public MinMaxScreen
 public:
 	//Functions
 	PhScreen();
-	void drawScreen();
+	void drawScreen( int aWhichScreen );
 	int handleScreen();
 	void refreshScreen();
 	void handleExitScreen();
@@ -41,6 +41,7 @@ public:
 	
 private:
 	int settingsButton;
+	int iPreviousScreen;
 
 };
 

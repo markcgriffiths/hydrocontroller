@@ -36,6 +36,9 @@
 #include "AboutScreen.h"
 #include "ECCalibrateScreen.h"
 #include "PhCalibrateScreen.h"
+#include "PlugSettingsScreen.h"
+#include "PumpScreen.h"
+#include "PumpDurationScreen.h"
 
 //For keeping track of the screen.
 const int MAIN_SCREEN = 1;
@@ -51,6 +54,9 @@ const int CALLIBRATE_PH_SCREEN = 10;
 const int CALLIBRATE_EC_SCREEN = 11;
 const int CALLIBRATE_AIR_SCREEN = 12;
 const int CALLIBRATE_WATER_SCREEN = 13;
+const int PLUGS_SETTINGS_SCREEN = 14;
+const int PUMP_SCREEN = 15;
+const int PUMP_DURATION_SCREEN = 16;
 
 //All the data from the HW sensors.
 
@@ -63,6 +69,7 @@ public:
 	void refreshScreen();
 	void CheckForScreenTouch();
 	void updateInfoFromSensors( SENSOR& sensorInformation );
+	void drawMainScreen();
 
 private:
     void handleButtons( int aHandleWhichButton );
@@ -75,12 +82,15 @@ private:
     TouchCalibration* iCalibrateTouch;
     TimeScreen* iTimeScreen;
     PlugScreen* iPlugScreen;
+    PlugSettingsScreen* iPlugSettingsScreen;
     MainScreen* iMainScreen;
     SetupScreen* iSetupScreen;
     AboutScreen* iAboutScreen;
     HydroponicsEngine* iHydroEng;
     ECCalibrateScreen* iECCalibrateScreen;
     PhCalibrateScreen* iPhCalibrateScreen;
+    PumpScreen* iPumpScreen;
+    PumpDurationScreen* iPumpDurationScreen;
 
 	//Member Variables
     int whichScreen; //We always start on main.

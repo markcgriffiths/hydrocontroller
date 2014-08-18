@@ -26,8 +26,9 @@ AirScreen::AirScreen(){
 
 }
 
-void AirScreen::drawScreen()
+void AirScreen::drawScreen( int aPreviousScreen)
 {
+	iPreviousScreen = aPreviousScreen;
 	drawMinMaxScreen( max, min, units );
 	//Setup header last as drawMinMaxScreen will clear screen.
 	drawHeader( "Air Control",  "Max and Min Temp"  );
@@ -48,6 +49,11 @@ int AirScreen::getMin( )
 	return min;
 }
 
+int AirScreen::getUnits( )
+{
+	return units;
+}
+
 void AirScreen::handleExitScreen()
 {
 	//Save the values for when device switched off.
@@ -59,7 +65,12 @@ void AirScreen::handleExitScreen()
 
 int AirScreen::handleScreen()
 {
-	return handleMinMaxScreen( max, min, units );
+	int ret = handleMinMaxScreen( max, min, units );
+
+	if ( (ret == BACK2MAIN_BUTTON  ) && (iPreviousScreen == 3/*SETUP_SCREEN*/) )
+			ret = BACK2SETUP_BUTTON;
+
+	return ret;
 }
 
 

@@ -81,7 +81,7 @@ void SetupScreen::drawScreen()
 	  plugsButton = myButtons.addButton( 10, 116, 145, 53, mainButton);
 
 	  //Draw  About Button
-	  aboutButton = myButtons.addButton( 160, 116, 145, 53, mainButton);
+	  pumpTimerButton = myButtons.addButton( 160, 116, 145, 53, mainButton);
 
 
 	  //Draw Back button
@@ -99,7 +99,7 @@ void SetupScreen::drawScreen()
 	  myUTFT.print("Air", 55, 90);
 	  myUTFT.print("Water", 200, 90);
 	  myUTFT.print("Plugs", 55, 146);
-	  myUTFT.print("About", 200, 146);
+	  myUTFT.print("Pump", 200, 146);
 	  myUTFT.print("Back", 55, 200);
 	  myUTFT.print("Clock", 200, 200);
 }

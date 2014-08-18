@@ -21,7 +21,7 @@
 
 #include "HydroponicsEngine.h"
 #include <DS3234.h> //Real Time Clock
-
+#include "UI_Shared.h"
 
 // Create a transmitter on address 9246490, using digital pin 10 to transmit, 
 // with a period duration of 261us (default=260), repeating the transmitted
@@ -42,18 +42,18 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature. 
 DallasTemperature waterTempSensor(&oneWire);
 
-static byte lightUnitID;
-static byte pumpUnitID;
+unsigned short lightUnitID;
+unsigned short pumpUnitID;
+unsigned short heaterUnitID;
 static NewRemoteTransmitter iTransmitter;
 
 extern String ECLevelString;
 
 String waterTempString;
 
-HydroponicsEngine::HydroponicsEngine() {
- 
-	updateScreen = true;
-   
+HydroponicsEngine::HydroponicsEngine()
+{
+
 }
 
 void HydroponicsEngine::begin() {
@@ -63,17 +63,27 @@ void HydroponicsEngine::begin() {
    Wire.begin();
 // Start up the library
   waterTempSensor.begin();
+  setTransmitterInformation();
   
-  // Initialize the rtc object
-    rtc.begin();
+  waterMaxTemp = EEPROM.read(EEPROM_WATERMAXTEMP_ADDRESS);
+  waterMinTemp = EEPROM.read(EEPROM_WATERMINTEMP_ADDRESS);
 
-  // The following lines can be uncommented and edited to set the time and date in the DS3234
-  //rtc.setDOW(WEDNESDAY);        // Set Day-of-Week to SATURDAY
-  //rtc.setTime(22, 39, 0);       // Set the time to 12:00:00 (24hr format)
-  //rtc.setDate(9, 07, 2014);    // Set the date to January 25th, 2014
+  int hour = EEPROM.read(EEPROM_PUMP_DURATION_TIMER_HOUR);
+  int min = EEPROM.read(EEPROM_PUMP_DURATION_TIMER_MIN);
+  SetPumpDurationTimer(hour, min );
+
+
+  hour = EEPROM.read(EEPROM_PUMP_TIMER_HOUR);
+  min = EEPROM.read(EEPROM_PUMP_TIMER_MIN);
+  SetPumpTimer(hour, min );
+
+  // Initialize the rtc object
+  rtc.begin();
 
   //To make sure it updates at boot.
   sensorInfo.minute = -1;
+
+  updateScreen = true;
     
   //Get the sensor info
   pHLevel();
@@ -84,8 +94,33 @@ void HydroponicsEngine::begin() {
    
 }
 
+//Changes the Time of the clock.
+void HydroponicsEngine::SetTime(int aHour, int aMin )
+{
+	// The following lines can be uncommented and edited to set the time and date in the DS3234
+	//rtc.setDOW(WEDNESDAY);        // Set Day-of-Week to SATURDAY
+	rtc.setTime(aHour, aMin, 0);       // Set the time to 12:00:00 (24hr format)
+	//rtc.setDate(9, 07, 2014);    // Set the date to January 25th, 2014
+  }
+
+
+void HydroponicsEngine::SetWaterThresholds(int aMax, int aMin )
+{
+	waterMaxTemp = aMax;
+	waterMinTemp = aMin;
+}
+
+//Changes the Time of the clock.
+void HydroponicsEngine::GetTime(int& aHour, int& aMin )
+{
+	clock = rtc.getTime();
+	aHour = clock.hour;
+	aMin = clock.min;
+  }
+
 //Gets the air temperature and humidity from the DHT11 Sensor.
-void HydroponicsEngine::airTemperatureHumidity(){
+void HydroponicsEngine::airTemperatureHumidity()
+{
   
   //Serial.println("\n");
   //Read the PIN to get the values.
@@ -97,6 +132,7 @@ void HydroponicsEngine::airTemperatureHumidity(){
   {
   sensorInfo.airTemp = DHT11.temperature();
   updateScreen = true;
+  updateAir = true;
   }
   
  
@@ -155,6 +191,7 @@ void HydroponicsEngine::pHLevel(){
   	Serial.println("PH TRUE");
   	sensorInfo.phLevel = 0;//phidgets_PH.pHLevel();
   	updateScreen = true;
+  	updatepH = true;
   	}
   
   }
@@ -170,6 +207,7 @@ void HydroponicsEngine::ECLevel()
   	Serial.println("EC TRUE");
   	sensorInfo.eCLevel = ecLevel;
   	updateScreen = true;
+  	updateEC = true;
   	}
 
   }
@@ -179,17 +217,18 @@ void HydroponicsEngine::lightValue(){
   
   Serial.println(analogRead(LIGHT_PIN) );
   sensorInfo.lightLevel = analogRead(LIGHT_PIN);
+  Serial.println("LIGHT VALUE");
+  Serial.println(sensorInfo.lightLevel);
   if(sensorInfo.lightLevel > 290 && !lightPlugOn )
   {
-   // Switch unit 0 on
-  transmitter.sendUnit(0, true);
+  SwitchLightsValue(true);
+  Serial.println("LIGHT ON");
   lightPlugOn = true;
   }
   else if(sensorInfo.lightLevel < 290 && lightPlugOn )
   {
-  // Switch unit 0 on
-  transmitter.sendUnit(0, false);
-  lightPlugOn = false;
+  SwitchLightsValue(false);
+  Serial.println("LIGHT OFF");
   }
   }
   
@@ -211,8 +250,17 @@ void HydroponicsEngine::waterTemp(){
   {
   sensorInfo.waterTemp = ( waterTempSensor.getTempCByIndex(0) + waterTempCal );
   updateScreen = true;
+  updateWater = true;
   }
   
+
+  //Check if we need to turn heater plug on or off
+  if( temp > waterMaxTemp )
+	  SwitchHeaterValue(false);
+
+  if( temp  < waterMinTemp )
+ 	  SwitchHeaterValue(true);
+
   }
   
  //Gets the ORP level from the Phidgets sensor.
@@ -247,10 +295,34 @@ boolean HydroponicsEngine::doesScreenNeedUpdating()
   return updateScreen;
 }
 
+boolean HydroponicsEngine::getUpdateAir()
+{
+  return updateAir;
+}
+
+boolean HydroponicsEngine::getUpdateWater()
+{
+  return updateWater;
+}
+
+boolean HydroponicsEngine::getUpdatepH()
+{
+  return updatepH;
+}
+
+boolean HydroponicsEngine::getUpdateEC()
+{
+  return updateEC;
+}
+
 void HydroponicsEngine::screenUpdated()
 {
   Serial.println("UPDATE_SCREEN");
   updateScreen = false;
+  updateWater = false;
+  updateAir = false;
+  updateEC = false;
+  updatepH = false;
 }
 
 //Returns the current state of the sensors.
@@ -259,102 +331,90 @@ SENSOR& HydroponicsEngine::getSensorInformation()
   return sensorInfo;
 }
 
-void HydroponicsEngine::setLightsID()
-{
-  Serial.println("SET_LIGHTS_ID");
-  // See the interrupt-parameter of attachInterrupt for possible values (and pins)
-  // to connect the receiver.
-  int interrupt = 4;
-  int repeats =1 ;
-  iTransmitter.SetAddress(9246490);
-  iTransmitter.SetPin(TRANSMITTER_PIN);
-  iTransmitter.SetPeriod(261);
-  iTransmitter.SetRepeats(3);
-  iTransmitter.sendUnit(0, false);
-  iTransmitter.sendUnit(1, false);
-  iTransmitter.sendUnit(2, false);
-  NewRemoteReceiver::init(interrupt, repeats, showLightsCode);
-}
-
-
-void HydroponicsEngine::showLightsCode(NewRemoteCode receivedCode)
-{
-  Serial.println("SHOW_CODE_ID");
-  // Note: interrupts are disabled. You can re-enable them if needed.
-
-   // Print the received code.
-   Serial.print("Addr ");
-   Serial.print(receivedCode.address);
-
-   if (receivedCode.groupBit) {
-     Serial.print(" group");
-   } else {
-     Serial.print(" unit ");
-     Serial.print(receivedCode.unit);
-     lightUnitID = receivedCode.unit;
-   }
-
-   switch (receivedCode.switchType) {
-     case 0:
-       Serial.print(" off");
-       break;
-     case 1:
-       Serial.print(" on");
-       break;
-     case 2:
-       Serial.print(" dim level ");
-       Serial.print(receivedCode.dimLevel);
-       break;
-     case 3:
-       Serial.print(" on with dim level ");
-       Serial.print(receivedCode.dimLevel);
-       break;
-   }
-
-   Serial.print(", period: ");
-   Serial.print(receivedCode.period);
-   Serial.println("us.");
-
-   iTransmitter.SetAddress(receivedCode.address);
-   iTransmitter.SetPin(TRANSMITTER_PIN);
-   iTransmitter.SetPeriod(receivedCode.period);
-   iTransmitter.SetRepeats(4);
-
-}
-
-void HydroponicsEngine::setPumpID()
-{
-  Serial.println("SET_PUMP_ID");
-  // See the interrupt-parameter of attachInterrupt for possible values (and pins)
-  // to connect the receiver.
-  NewRemoteReceiver::init(4, 2, showPumpCode);
-
-}
-void HydroponicsEngine::showPumpCode(NewRemoteCode receivedCode)
-{
-  Serial.println("SHOW_PUMP_CODE_ID");
-  pumpUnitID = receivedCode.unit;
-  iTransmitter.SetAddress(receivedCode.address);
-  iTransmitter.SetPin(TRANSMITTER_PIN);
-  iTransmitter.SetPeriod(receivedCode.period);
-  iTransmitter.SetRepeats(4);
-}
 
 void HydroponicsEngine::SwitchLightsValue(bool aValue)
 {
-	Serial.println("SWITCH LIGHTS");
+	lightUnitID = EEPROM.read(EEPROM_LEARNED_LIGHTS_UNIT);
+	iTransmitter.sendUnit(lightUnitID, aValue);
+	EEPROM.write(EEPROM_LIGHTS_UNIT_STATE, aValue);
+}
+
+void HydroponicsEngine::SetPumpTimer(int aHour, int aMin)
+{
+	Serial.println("SetPumpTimer hour ");
+	Serial.println(aHour);
+	Serial.println("SetPumpTimer min ");
+	Serial.println(aMin);
+	pumpTimerInSeconds = (aHour *60 + aMin) *60; //convert to mins
+	pumpTimerInSecondsSaved = pumpTimerInSeconds;
+	Serial.println("SetPumpTimer seconds ");
+	Serial.println(pumpTimerInSeconds);
+	//pumpTimerInSeconds = pumpTimerInSeconds * 60; //convert to seconds
+	Serial.println("SetPumpTimer seconds ");
+	Serial.println(pumpTimerInSeconds);
+	Serial.println(" EXIT SetPumpTimer ");
+}
+
+void HydroponicsEngine::SetPumpDurationTimer(int aHour, int aMin)
+{
+	pumpDurationTimerInSeconds = (aHour *60 + aMin) *60; //convert to mins
+	pumpDurationTimerInSecondsSaved = pumpDurationTimerInSeconds;
+}
+
+void HydroponicsEngine::ResetPumpDurationTimer()
+{
+	pumpDurationTimerInSeconds = pumpDurationTimerInSecondsSaved;
+}
+
+void HydroponicsEngine::ResetPumpTimer()
+{
+	pumpTimerInSeconds = pumpTimerInSecondsSaved;
+}
+
+long HydroponicsEngine::GetPumpTimer()
+{
+	Serial.println("GetPumpTimer seconds -5 ");
+	pumpTimerInSeconds = pumpTimerInSeconds -5; // -5 as main loop checks every 5s.
+
+	if(pumpTimerInSeconds < 0 )
+			pumpTimerInSeconds = 0;
+
+	Serial.println("GetPumpTimer seconds return ");
+	return pumpTimerInSeconds;
+}
+
+long HydroponicsEngine::GetPumpDurationTimer()
+{
+	pumpDurationTimerInSeconds = pumpDurationTimerInSeconds -5; // -5 as main loop checks every 5s.
+
+	if(pumpDurationTimerInSeconds < 0 )
+		pumpDurationTimerInSeconds = 0;
+
+	return pumpDurationTimerInSeconds;
+}
+
+
+
+void HydroponicsEngine::SwitchPumpValue(bool aValue)
+{
+	pumpUnitID = EEPROM.read(EEPROM_LEARNED_PUMP_UNIT);
+	iTransmitter.sendUnit(pumpUnitID, aValue);
+	EEPROM.write(EEPROM_PUMP_UNIT_STATE,aValue);
+}
+
+void HydroponicsEngine::SwitchHeaterValue(bool aValue)
+{
+	heaterUnitID = EEPROM.read(EEPROM_LEARNED_HEATER_UNIT);
+	iTransmitter.sendUnit(heaterUnitID, aValue);
+	EEPROM.write(EEPROM_HEATER_UNIT_STATE,aValue);
+}
+
+void HydroponicsEngine::setTransmitterInformation()
+{
 	iTransmitter.SetAddress(9246490);
 	iTransmitter.SetPin(TRANSMITTER_PIN);
 	iTransmitter.SetPeriod(261);
 	iTransmitter.SetRepeats(3);
-	iTransmitter.sendUnit(/*lightUnitID*/0, aValue);
-	iTransmitter.sendUnit(/*lightUnitID*/1, aValue);
-	iTransmitter.sendUnit(/*lightUnitID*/2, aValue);
-}
-
-void HydroponicsEngine::SwitchPumpValue(bool aValue)
-{
-	iTransmitter.sendUnit(pumpUnitID, aValue);
 }
 
 
